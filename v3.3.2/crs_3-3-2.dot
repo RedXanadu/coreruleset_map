@@ -1,0 +1,895 @@
+digraph CRS3 {
+	/* Enable the 'newrank' option: this allows aligning nodes inside a cluster
+	 * to the same rank as nodes outside (e.g. the paranoia level graph on the left)
+	 */
+	newrank=true;
+	ordering="out";
+
+	/* Define default node style */
+	node [
+		shape=box,
+		fontname="Liberation Sans",
+		style=filled,
+		fillcolor="white",
+	];
+	/* Define default graph style (fontname here affects the box titles) */
+	graph [
+		fontname="Liberation Sans",
+		fontsize=22.0,
+	];
+
+	/* Paranoia levels running down the left hand side, plus graph title at the top */
+	paranoia_title	[shape=plaintext, label="Paranoia Levels", fontsize=64.0];
+	paranoia_0	[shape=plaintext, label="0", fontsize=72.0];
+	paranoia_1	[shape=plaintext, label="1", fontsize=72.0];
+	paranoia_2	[shape=plaintext, label="2", fontsize=72.0];
+	paranoia_3	[shape=plaintext, label="3", fontsize=72.0];
+	paranoia_4	[shape=plaintext, label="4", fontsize=72.0];
+
+	paranoia_title -> paranoia_0 [style=invis];
+	paranoia_0 -> paranoia_1 [style=invis];
+	paranoia_1 -> paranoia_2 [style=invis];
+	paranoia_2 -> paranoia_3 [style=invis];
+	paranoia_3 -> paranoia_4 [style=invis];
+
+
+	subgraph cluster_REQUEST_910_IP_REPUTATION {
+		label="REQUEST-910-IP-REPUTATION";
+
+		rule_910000	[label="910000\nRequest from currently blocked client\nPhase 2", fillcolor="lightskyblue"];
+		rule_910100	[label="910100\nClient IP address is from a high risk country\nPhase 2", fillcolor="lightskyblue"];
+		rule_910120	[label="910120\nCheck IP collection for previous RBL check\nPhase 2", fillcolor="lightskyblue"];
+		rule_910130	[label="910130\nCheck if RBL checking can be skipped\nPhase 2", fillcolor="lightskyblue"];
+		rule_910140	[label="910140\nPerform RBL check\nPhase 2", fillcolor="lightskyblue"];
+		rule_910150	[label="910150\nClient IP address flagged as search engine\nPhase 2", fillcolor="lightskyblue"];
+		rule_910160	[label="910160\nClient IP address flagged as spammer\nPhase 2", fillcolor="lightskyblue"];
+		rule_910170	[label="910170\nClient IP address flagged as suspicious\nPhase 2", fillcolor="lightskyblue"];
+		rule_910180	[label="910180\nClient IP address flagged as harvester\nPhase 2", fillcolor="lightskyblue"];
+		rule_910190	[label="910190\nUpdate IP collection that RBL check has been performed\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_910000 -> rule_910100 -> rule_910120 -> rule_910130 -> rule_910140 -> rule_910150 -> rule_910160 -> rule_910170 -> rule_910180 -> rule_910190 [style=invis];
+	}
+
+
+	subgraph cluster_REQUEST_911_METHOD_ENFORCEMENT {
+		label="REQUEST-911-METHOD-ENFORCEMENT";
+
+		rule_911100	[label="911100\nHTTP request method not allowed\nPhase 2", fillcolor="lightskyblue"];
+	}
+
+
+	subgraph cluster_REQUEST_912_DOS_PROTECTION {
+		label="REQUEST-912-DOS-PROTECTION";
+
+		rule_912100	[label="912100\nSkip DoS rules if variables are not set\nPhase 1", fillcolor="darkgoldenrod1"];
+		rule_912110	[label="912110\nSkip DoS rules if variables are not set\nPhase 5", fillcolor="mediumseagreen"];
+		/* -- Ordering -- */
+		rule_912100 -> rule_912110 [style=invis];
+
+		rule_912120	[label="912120\nDoS attack identified: block and log\nPhase 1", fillcolor="darkgoldenrod1"];
+		rule_912130	[label="912130\nDoS attack identified: block without logging\nPhase 1", fillcolor="darkgoldenrod1"];
+		rule_912140	[label="912140\nSkip remaining DoS rules if request was already blocked\nPhase 5", fillcolor="mediumseagreen"];
+		rule_912150	[label="912150\nCount requests to non-static resources\nPhase 5", fillcolor="mediumseagreen"];
+		rule_912160	[label="912160\nIncrement the burst counter (0 to 1)\nPhase 5", fillcolor="mediumseagreen"];
+		rule_912161	[label="912161\nIncrement the burst counter (1 to 2)\nPhase 5", fillcolor="mediumseagreen"];
+		rule_912170	[label="912170\nCheck burst counter and block if 2 or more\nPhase 5", fillcolor="mediumseagreen"];
+			rule_912170 -> rule_912171;
+		/* -- Ordering -- */
+		rule_912120 -> rule_912130 -> rule_912140 -> rule_912150 -> rule_912160 -> rule_912161 -> rule_912170 [style=invis];
+
+		rule_912171	[label="912171\nCheck burst counter and block if 1 or more\nPhase 5", fillcolor="mediumseagreen"];
+	}
+
+
+	subgraph cluster_REQUEST_913_SCANNER_DETECTION {
+		label="REQUEST-913-SCANNER-DETECTION";
+
+		rule_913100	[label="913100\nUser-Agent associated with known security scanner\nPhase 2", fillcolor="lightskyblue"];
+			rule_913100 -> rule_913101;
+			rule_913100 -> rule_913102;
+		rule_913110	[label="913110\nRequest header associated with known security scanner\nPhase 2", fillcolor="lightskyblue"];
+		rule_913120	[label="913120\nFilename or argument associated with known security scanner\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_913100 -> rule_913110 -> rule_913120 [style=invis];
+
+		rule_913101	[label="913101\nUser-Agent associated with scripting or generic HTTP client\nPhase 2", fillcolor="lightskyblue"];
+		rule_913102	[label="913102\nUser-Agent associated with known web crawler or bot\nPhase 2", fillcolor="lightskyblue"];
+	}
+
+
+	subgraph cluster_REQUEST_920_PROTOCOL_ENFORCEMENT {
+		label="REQUEST-920-PROTOCOL-ENFORCEMENT";
+
+		rule_920100	[label="920100\nInvalid HTTP request line\nPhase 2", fillcolor="lightskyblue"];
+		rule_920120	[label="920120\nAttempted multipart/form-data bypass\nPhase 2", fillcolor="lightskyblue"];
+			rule_920120 -> rule_920121;
+		rule_920160	[label="920160\nContent-Length header is not numeric\nPhase 1", fillcolor="darkgoldenrod1"];
+		rule_920170	[label="920170\nGET or HEAD request with body content\nPhase 2", fillcolor="lightskyblue"];
+			rule_920170 -> rule_920171 [dir=none];
+		rule_920171	[label="920171\nGET or HEAD request with Transfer-Encoding\nPhase 2", fillcolor="lightskyblue"];
+		rule_920180	[label="920180\nPOST request without Content-Length or Transfer-Encoding header\nPhase 2", fillcolor="lightskyblue"];
+		rule_920181	[label="920181\nContent-Length and Transfer-Encoding headers both present\nPhase 2", fillcolor="lightskyblue"];
+		rule_920190	[label="920190\nInvalid last byte value in Range/Request-Range header\nPhase 2", fillcolor="lightskyblue"];
+		rule_920210	[label="920210\nConflicting Connection header data\nPhase 2", fillcolor="lightskyblue"];
+		rule_920220	[label="920220\nURL encoding abuse in the request URI\nPhase 2", fillcolor="lightskyblue"];
+		rule_920240	[label="920240\nURL encoding abuse in the request body\nPhase 2", fillcolor="lightskyblue"];
+		rule_920250	[label="920250\nUTF-8 encoding abuse\nPhase 2", fillcolor="lightskyblue"];
+		rule_920260	[label="920260\nUnicode full/half width abuse\nPhase 2", fillcolor="lightskyblue"];
+		rule_920270	[label="920270\nCharacter restriction (full ASCII sans null character)\nPhase 2", fillcolor="lightskyblue"];
+			rule_920270 -> rule_920271;
+		rule_920280	[label="920280\nRequest missing a Host header\nPhase 2", fillcolor="lightskyblue"];
+		rule_920290	[label="920290\nEmpty Host header\nPhase 2", fillcolor="lightskyblue"];
+		rule_920310	[label="920310\nEmpty Accept header\nPhase 2", fillcolor="lightskyblue"];
+			rule_920310 -> rule_920311 [dir=none];
+		rule_920311	[label="920311\nEmpty Accept header\nPhase 2", fillcolor="lightskyblue"];
+		rule_920330	[label="920330\nEmpty User-Agent header\nPhase 2", fillcolor="lightskyblue"];
+		rule_920340	[label="920340\nRequest containing content missing Content-Type header\nPhase 2", fillcolor="lightskyblue"];
+			rule_920340 -> rule_920341;
+		rule_920350	[label="920350\nHost header is an IP address\nPhase 2", fillcolor="lightskyblue"];
+		rule_920380	[label="920380\nToo many arguments in request\nPhase 2", fillcolor="lightskyblue"];
+		rule_920360	[label="920360\nArgument name too long\nPhase 2", fillcolor="lightskyblue"];
+		rule_920370	[label="920370\nArgument value too long\nPhase 2", fillcolor="lightskyblue"];
+		rule_920390	[label="920390\nCombined size of all arguments too large\nPhase 2", fillcolor="lightskyblue"];
+		rule_920400	[label="920400\nUploaded file size too large\nPhase 2", fillcolor="lightskyblue"];
+		rule_920410	[label="920410\nCombined size of all uploaded files too large\nPhase 2", fillcolor="lightskyblue"];
+		rule_920470	[label="920470\nIllegal Content-Type header\nPhase 1", fillcolor="darkgoldenrod1"];
+		rule_920420	[label="920420\nContent-Type not allowed\nPhase 2", fillcolor="lightskyblue"];
+		rule_920480	[label="920480\nContent-Type charset not allowed\nPhase 1", fillcolor="darkgoldenrod1"];
+		rule_920430	[label="920430\nHTTP protocol version not allowed\nPhase 1", fillcolor="darkgoldenrod1"];
+		rule_920440	[label="920440\nRequested file extension not allowed\nPhase 2", fillcolor="lightskyblue"];
+		rule_920500	[label="920500\nAttempt to access a backup or 'working' file\nPhase 2", fillcolor="lightskyblue"];
+		rule_920450	[label="920450\nRestricted HTTP request header\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_920100 -> rule_920120 -> rule_920160 -> rule_920170 [style=invis];
+		rule_920171 -> rule_920180 -> rule_920181 -> rule_920190 -> rule_920210 -> rule_920220 -> rule_920240 -> rule_920250 -> rule_920260 -> rule_920270 -> rule_920280 -> rule_920290 -> rule_920310 [style=invis];
+		rule_920311 -> rule_920330 -> rule_920340 -> rule_920350 -> rule_920380 -> rule_920360 -> rule_920370 -> rule_920390 -> rule_920400 -> rule_920410 -> rule_920470 -> rule_920420 -> rule_920480 -> rule_920430 -> rule_920440 -> rule_920500 -> rule_920450 [style=invis];
+
+		rule_920271	[label="920271\nCharacter restriction (visible ASCII, tab, newline)\nPhase 2", fillcolor="lightskyblue"];
+			rule_920271 -> rule_920272;
+		rule_920200	[label="920200\nToo many range fields (more than 5; excludes PDF files)\nPhase 2", fillcolor="lightskyblue"];
+			rule_920200 -> rule_920201 [dir=none];
+			rule_920200 -> rule_920202;
+		rule_920201	[label="920201\nToo many range fields for PDF request (more than 62)\nPhase 2", fillcolor="lightskyblue"];
+		rule_920230	[label="920230\nMultiple levels of URL encoding detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_920300	[label="920300\nRequest missing an Accept header\nPhase 2", fillcolor="lightskyblue"];
+		rule_920320	[label="920320\nRequest missing a User-Agent header\nPhase 2", fillcolor="lightskyblue"];
+		rule_920121	[label="920121\nAttempted multipart/form-data bypass (more restrictive)\nPhase 2", fillcolor="lightskyblue"];
+		rule_920341	[label="920341\nRequest containing content missing Content-Type header\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_920190 -> rule_920230 [style=invis];
+		rule_920230 -> rule_920300 -> rule_920320 [style=invis];
+		rule_920170 -> rule_920200 [style=invis];
+
+		rule_920272	[label="920272\nCharacter restriction (visible lower ASCII sans percent)\nPhase 2", fillcolor="lightskyblue"];
+			rule_920272 -> rule_920273;
+			rule_920272 -> rule_920274;
+			rule_920272 -> rule_920275;
+		rule_920490	[label="920490\nx-up-devcap-post-charset header vulnerability\nPhase 1", fillcolor="darkgoldenrod1"];
+		rule_920510	[label="920510\nInvalid Cache-Control header\nPhase 1", fillcolor="darkgoldenrod1"];
+		/* -- Ordering -- */
+		rule_920171 -> rule_920490 [style=invis];
+		rule_920181 -> rule_920510 [style=invis];
+
+		rule_920202	[label="920202\nToo many range fields for PDF request (more than 5)\nPhase 2", fillcolor="lightskyblue"];
+		rule_920273	[label="920273\nCharacter restriction (very strict subset of ASCII characters)\nPhase 2", fillcolor="lightskyblue"];
+		rule_920274	[label="920274\nCharacter restriction (very strict subset of ASCII characters)\nPhase 2", fillcolor="lightskyblue"];
+		rule_920275	[label="920275\nCharacter restriction (very strict subset of ASCII characters)\nPhase 2", fillcolor="lightskyblue"];
+		rule_920460	[label="920460\nAbnormal character escapes in request\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_920180 -> rule_920460 [style=invis];
+	}
+
+
+	subgraph cluster_REQUEST_921_PROTOCOL_ATTACK {
+		label="REQUEST-921-PROTOCOL-ATTACK";
+
+		rule_921110	[label="921110\nHTTP request smuggling attack\nPhase 2", fillcolor="lightskyblue"];
+		rule_921120	[label="921120\nHTTP response splitting attack\nPhase 2", fillcolor="lightskyblue"];
+		rule_921130	[label="921130\nHTTP response splitting attack\nPhase 2", fillcolor="lightskyblue"];
+		rule_921140	[label="921140\nHTTP header injection attack via headers\nPhase 2", fillcolor="lightskyblue"];
+		rule_921150	[label="921150\nHTTP header injection attack via payload\nPhase 2", fillcolor="lightskyblue"];
+			rule_921150 -> rule_921151;
+		rule_921160	[label="921160\nHTTP header injection attack via payload\nPhase 1", fillcolor="darkgoldenrod1"];
+		rule_921190	[label="921190\nHTTP splitting\nPhase 1", fillcolor="darkgoldenrod1"];
+		rule_921200	[label="921200\nLDAP injection attack\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_921110 -> rule_921120 -> rule_921130 -> rule_921140 -> rule_921150 -> rule_921160 -> rule_921190 -> rule_921200 [style=invis];
+
+		rule_921151	[label="921151\nHTTP header injection attack via payload (GET arguments)\nPhase 2", fillcolor="lightskyblue"];
+
+		rule_921170	[label="921170\nNon-blocking helper function\nPhase 2", fillcolor="lightskyblue"];
+			rule_921170 -> rule_921180 [dir=none];
+		rule_921180	[label="921180\nHTTP parameter pollution\nPhase 2", fillcolor="lightskyblue"];
+	}
+
+
+	subgraph cluster_REQUEST_930_APPLICATION_ATTACK_LFI {
+		label="REQUEST-930-APPLICATION-ATTACK-LFI";
+
+		rule_930100	[label="930100\nPath traversal attack (encoded)\nPhase 2", fillcolor="lightskyblue"];
+		rule_930110	[label="930110\nPath traversal attack (decoded)\nPhase 2", fillcolor="lightskyblue"];
+		rule_930120	[label="930120\nAttempt to access an OS file\nPhase 2", fillcolor="lightskyblue"];
+		rule_930130	[label="930130\nAttempt to access a restricted file\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_930100 -> rule_930110 -> rule_930120 -> rule_930130 [style=invis];
+	}
+
+
+	subgraph cluster_REQUEST_931_APPLICATION_ATTACK_RFI {
+		label="REQUEST-931-APPLICATION-ATTACK-RFI";
+
+		rule_931100	[label="931100\nURL parameter using IP address\nPhase 2", fillcolor="lightskyblue"];
+		rule_931110	[label="931110\nCommon RFI vulnerable parameter name used with URL payload\nPhase 2", fillcolor="lightskyblue"];
+		rule_931120	[label="931120\nURL payload used with trailing question mark\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_931100 -> rule_931110 -> rule_931120 [style=invis];
+
+		rule_931130	[label="931130\nOff-domain reference/link\nPhase 2", fillcolor="lightskyblue"];
+	}
+
+
+	subgraph cluster_REQUEST_932_APPLICATION_ATTACK_RCE {
+		label="REQUEST-932-APPLICATION-ATTACK-RCE";
+
+		rule_932100	[label="932100\nUnix command injection\nPhase 2", fillcolor="lightskyblue"];
+			rule_932100 -> rule_932105 [dir=none];
+			rule_932100 -> rule_932106;
+		rule_932105	[label="932105\nUnix command injection (continuation)\nPhase 2", fillcolor="lightskyblue"];
+		rule_932110	[label="932110\nWindows command injection\nPhase 2", fillcolor="lightskyblue"];
+			rule_932110 -> rule_932115 [dir=none];
+		rule_932115	[label="932115\nWindows command injection (continuation)\nPhase 2", fillcolor="lightskyblue"];
+		rule_932120	[label="932120\nWindows PowerShell command found\nPhase 2", fillcolor="lightskyblue"];
+		rule_932130	[label="932130\nUnix shell expression found\nPhase 2", fillcolor="lightskyblue"];
+		rule_932140	[label="932140\nWindows FOR/IF command found\nPhase 2", fillcolor="lightskyblue"];
+		rule_932150	[label="932150\nDirect Unix command execution\nPhase 2", fillcolor="lightskyblue"];
+		rule_932160	[label="932160\nUnix shell code found\nPhase 2", fillcolor="lightskyblue"];
+		rule_932170	[label="932170\nShellshock exploitation detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_932171	[label="932171\nShellshock exploitation detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_932180	[label="932180\nAttempt to upload a restricted file\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_932105 -> rule_932110 [style=invis];
+		rule_932115 -> rule_932120 -> rule_932130 -> rule_932140 -> rule_932150 -> rule_932160 -> rule_932170 -> rule_932171 -> rule_932180 [style=invis];
+
+		rule_932200	[label="932200\nRemote command execution bypass attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_932130 -> rule_932200 [style=invis];
+
+		rule_932106	[label="932106\nUnix command injection (higher risk of false positives)\nPhase 2", fillcolor="lightskyblue"];
+		rule_932190	[label="932190\nRemote command execution wildcard bypass attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_932150 -> rule_932190 [style=invis];
+	}
+
+
+	subgraph cluster_REQUEST_933_APPLICATION_ATTACK_PHP {
+		label="REQUEST-933-APPLICATION-ATTACK-PHP";
+
+		rule_933100	[label="933100\nPHP open tag found\nPhase 2", fillcolor="lightskyblue"];
+		rule_933110	[label="933110\nPHP script file upload found\nPhase 2", fillcolor="lightskyblue"];
+			rule_933110 -> rule_933111;
+		rule_933120	[label="933120\nPHP configuration directive found\nPhase 2", fillcolor="lightskyblue"];
+		rule_933130	[label="933130\nPHP variable found\nPhase 2", fillcolor="lightskyblue"];
+			rule_933130 -> rule_933131;
+		rule_933140	[label="933140\nPHP I/O stream found\nPhase 2", fillcolor="lightskyblue"];
+		rule_933200	[label="933200\nPHP wrapper scheme detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_933150	[label="933150\nHigh risk PHP function name found\nPhase 2", fillcolor="lightskyblue"];
+			rule_933150 -> rule_933151;
+		rule_933160	[label="933160\nHigh risk PHP function call found\nPhase 2", fillcolor="lightskyblue"];
+			rule_933160 -> rule_933161;
+		rule_933170	[label="933170\nSerialised PHP object injection\nPhase 2", fillcolor="lightskyblue"];
+		rule_933180	[label="933180\nPHP variable function call found\nPhase 2", fillcolor="lightskyblue"];
+		rule_933210	[label="933210\nPHP variable function call found\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_933100 -> rule_933110 -> rule_933120 -> rule_933130 -> rule_933140 -> rule_933150 -> rule_933160 -> rule_933170 -> rule_933180 -> rule_933200 -> rule_933210 [style=invis];
+
+		rule_933151	[label="933151\nMedium risk PHP function name found\nPhase 2", fillcolor="lightskyblue"];
+
+		rule_933131	[label="933131\nPHP variable found (higher risk of false positives)\nPhase 2", fillcolor="lightskyblue"];
+		rule_933161	[label="933161\nLow value PHP function call found (false positives likely)\nPhase 2", fillcolor="lightskyblue"];
+		rule_933111	[label="933111\nPHP script file upload with superfluous extension found\nPhase 2", fillcolor="lightskyblue"];
+		rule_933190	[label="933190\nPHP closing tag found\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_933180 -> rule_933190 [style=invis];
+	}
+
+
+	subgraph cluster_REQUEST_934_APPLICATION_ATTACK_NODEJS {
+		label="REQUEST-934-APPLICATION-ATTACK-NODEJS";
+
+		rule_934100	[label="934100\nNode.js injection attack\nPhase 2", fillcolor="lightskyblue"];
+	}
+
+
+	subgraph cluster_REQUEST_941_APPLICATION_ATTACK_XSS {
+		label="REQUEST-941-APPLICATION-ATTACK-XSS";
+
+		rule_941100	[label="941100\nXSS attack detected by libinjection\nPhase 2", fillcolor="lightskyblue"];
+			rule_941100 -> rule_941101;
+		rule_941110	[label="941110\nXSS filter - category 1: script tag attack vector\nPhase 2", fillcolor="lightskyblue"];
+		rule_941120	[label="941120\nXSS filter - category 2: event handler attack vector\nPhase 2", fillcolor="lightskyblue"];
+		rule_941130	[label="941130\nXSS filter - category 3: attribute attack vector\nPhase 2", fillcolor="lightskyblue"];
+		rule_941140	[label="941140\nXSS filter - category 4: JavaScript URI attack vector\nPhase 2", fillcolor="lightskyblue"];
+		rule_941160	[label="941160\nNoScript XSS InjectionChecker: HTML injection found\nPhase 2", fillcolor="lightskyblue"];
+		rule_941170	[label="941170\nNoScript XSS InjectionChecker: attribute injection found\nPhase 2", fillcolor="lightskyblue"];
+		rule_941180	[label="941180\nvalidator.js blocked keywords\nPhase 2", fillcolor="lightskyblue"];
+		rule_941190	[label="941190\nIE XSS filter: attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941200	[label="941200\nIE XSS filter: attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941210	[label="941210\nIE XSS filter: attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941220	[label="941220\nIE XSS filter: attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941230	[label="941230\nIE XSS filter: attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941240	[label="941240\nIE XSS filter: attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941250	[label="941250\nIE XSS filter: attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941260	[label="941260\nIE XSS filter: attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941270	[label="941270\nIE XSS filter: attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941280	[label="941280\nIE XSS filter: attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941290	[label="941290\nIE XSS filter: attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941300	[label="941300\nIE XSS filter: attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941310	[label="941310\nMalformed US-ASCII encoding XSS filter: attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941350	[label="941350\nUTF-7 encoding IE XSS filter: attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941360	[label="941360\nJSFuck/Hieroglyphy obfuscation detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941370	[label="941370\nJavaScript global variable found\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_941100 -> rule_941110 -> rule_941120 -> rule_941130 -> rule_941140 -> rule_941160 -> rule_941170 -> rule_941180 -> rule_941190 -> rule_941200 -> rule_941210 -> rule_941220 -> rule_941230 -> rule_941240 -> rule_941250 -> rule_941260 -> rule_941270 -> rule_941280 -> rule_941290 -> rule_941300 -> rule_941310 -> rule_941350 -> rule_941360 -> rule_941370 [style=invis];
+
+		rule_941101	[label="941101\nXSS attack detected in Referer header by libinjection\nPhase 2", fillcolor="lightskyblue"];
+		rule_941150	[label="941150\nXSS filter - category 5: disallowed HTML attributes\nPhase 2", fillcolor="lightskyblue"];
+		rule_941320	[label="941320\nPossible HTML tag handler XSS attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941330	[label="941330\nIE XSS filter: attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941340	[label="941340\nIE XSS filter: attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_941380	[label="941380\nAngularJS client side template injection detected\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_941101 -> rule_941150 -> rule_941320 -> rule_941330 -> rule_941340 -> rule_941380 [style=invis];
+	}
+
+
+	subgraph cluster_REQUEST_942_APPLICATION_ATTACK_SQLI {
+		label="REQUEST-942-APPLICATION-ATTACK-SQLI";
+
+		rule_942100	[label="942100\nSQL injection attack detected by libinjection\nPhase 2", fillcolor="lightskyblue"];
+			rule_942100 -> rule_942101;
+		rule_942140	[label="942140\nCommon database name detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942160	[label="942160\nBlind SQL injection test using sleep() or benchmark() detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942170	[label="942170\nSQL injection attempt using sleep() or benchmark() detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942190	[label="942190\nMSSQL code execution detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942220	[label="942220\nInteger overflow attack detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942230	[label="942230\nConditional SQL injection attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942240	[label="942240\nMySQL character set switch or MSSQL DoS attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942250	[label="942250\nMERGE AGAINST, MERGE, or EXECUTE IMMEDIATE injection detected\nPhase 2", fillcolor="lightskyblue"];
+			rule_942250 -> rule_942251;
+		rule_942270	[label="942270\nCommon SQL injection attack string detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942280	[label="942280\nPostgreSQL injection attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942290	[label="942290\nMongoDB SQL injection attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942320	[label="942320\nMySQL or PostgreSQL injection attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942350	[label="942350\nMySQL injection attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942360	[label="942360\nSQL injection or SQL LFI attempt detected\nPhase 2", fillcolor="lightskyblue"];
+			rule_942360 -> rule_942361;
+		rule_942500	[label="942500\nMySQL inline comment detected\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_942140 -> rule_942160 -> rule_942170 -> rule_942190 -> rule_942220 -> rule_942230 -> rule_942240 -> rule_942270 -> rule_942280 -> rule_942290 -> rule_942320 -> rule_942350 -> rule_942500 -> rule_942250 [style=invis];
+
+		rule_942110	[label="942110\nCommon SQL injection testing detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942120	[label="942120\nSQL operator detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942130	[label="942130\nSQL tautology detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942150	[label="942150\nSQL function name detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942180	[label="942180\nSQL authentication bypass attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942200	[label="942200\nMySQL obfuscated injection detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942210	[label="942210\nChained SQL injection attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942260	[label="942260\nSQL authentication bypass attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942300	[label="942300\nMySQL comment, condition, or character injection detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942310	[label="942310\nChained SQL injection attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942330	[label="942330\nSQL injection probing detected\nPhase 2", fillcolor="lightskyblue"];
+			rule_942330 -> rule_942370 [dir=none];
+			rule_942330 -> rule_942490;
+		rule_942340	[label="942340\nSQL authentication bypass attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942361	[label="942361\nSQL injection attempt using keyword alter or union detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942370	[label="942370\nSQL injection probing detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942380	[label="942380\nSQL injection attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942390	[label="942390\nSQL injection attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942400	[label="942400\nSQL injection attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942410	[label="942410\nSQL injection attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942470	[label="942470\nSQL injection attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942480	[label="942480\nSQL injection attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942430	[label="942430\nToo many restricted SQL chars detected (12+, GET/POST params)\nPhase 2", fillcolor="lightskyblue"];
+			rule_942430 -> rule_942431;
+		rule_942440	[label="942440\nSQL comment sequence detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942450	[label="942450\nSQL hex encoding detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942510	[label="942510\nBypass attempt using backticks detected\nPhase 2", fillcolor="lightskyblue"];
+			rule_942510 -> rule_942511;
+		/* -- Ordering -- */
+		rule_942110 -> rule_942120 -> rule_942130 -> rule_942150 -> rule_942180 -> rule_942200 -> rule_942210 -> rule_942260 -> rule_942300 [style=invis];
+		rule_942310 -> rule_942330 [style=invis];
+		rule_942370 -> rule_942340 -> rule_942380 -> rule_942390 -> rule_942400 -> rule_942410 -> rule_942361 -> rule_942430 -> rule_942440 -> rule_942450 -> rule_942470 -> rule_942480 -> rule_942510 [style=invis];
+
+		rule_942251	[label="942251\nSQL HAVING injection detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942490	[label="942490\nSQL injection probing detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_942420	[label="942420\nToo many restricted SQL chars detected (8+, in cookies)\nPhase 2", fillcolor="lightskyblue"];
+			rule_942420 -> rule_942421;
+		rule_942431	[label="942431\nToo many restricted SQL chars detected (6+, GET/POST params)\nPhase 2", fillcolor="lightskyblue"];
+			rule_942431 -> rule_942432;
+		rule_942460	[label="942460\nToo many consecutive non-word characters detected (4+)\nPhase 2", fillcolor="lightskyblue"];
+		rule_942101	[label="942101\nSQL injection attack detected by libinjection (URL path)\nPhase 2", fillcolor="lightskyblue"];
+		rule_942511	[label="942511\nBypass attempt using ticks detected\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_942420 -> rule_942490 -> rule_942460 [style=invis];
+
+		rule_942421	[label="942421\nToo many restricted SQL chars detected (3+, in cookies)\nPhase 2", fillcolor="lightskyblue"];
+		rule_942432	[label="942432\nToo many restricted SQL chars detected (2+, GET/POST params)\nPhase 2", fillcolor="lightskyblue"];
+	}
+
+
+	subgraph cluster_REQUEST_943_APPLICATION_ATTACK_SESSION_FIXATION {
+		label="REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION";
+
+		rule_943100	[label="943100\nAttempt to set cookie values in HTML\nPhase 2", fillcolor="lightskyblue"];
+		rule_943110	[label="943110\nSessionID parameter found alonside off-domain Referer header\nPhase 2", fillcolor="lightskyblue"];
+		rule_943120	[label="943120\nSessionID parameter found with no Referer header\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_943100 -> rule_943110 -> rule_943120 [style=invis];
+	}
+
+
+	subgraph cluster_REQUEST_944_APPLICATION_ATTACK_JAVA {
+		label="REQUEST-944-APPLICATION-ATTACK-JAVA";
+
+		rule_944100	[label="944100\nSuspicious Java class detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_944110	[label="944110\nJava process spawn attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_944120	[label="944120\nJava serialisation exploit attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_944130	[label="944130\nSuspicious Java class detected\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_944100 -> rule_944110 -> rule_944120 -> rule_944130 [style=invis];
+
+		rule_944200	[label="944200\nMagic bytes detected: Java serialisation exploit\nPhase 2", fillcolor="lightskyblue"];
+		rule_944210	[label="944210\nEncoded magic bytes detected: Java serialisation exploit\nPhase 2", fillcolor="lightskyblue"];
+		rule_944240	[label="944240\nJava serialisation exploit attempt detected\nPhase 2", fillcolor="lightskyblue"];
+		rule_944250	[label="944250\nSuspicious Java method detected\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_944200 -> rule_944210 -> rule_944240 -> rule_944250 [style=invis];
+
+		rule_944300	[label="944300\nBase64 encoded string matching suspicious keyword\nPhase 2", fillcolor="lightskyblue"];
+	}
+
+
+	subgraph cluster_REQUEST_949_BLOCKING_EVALUATION {
+		label="REQUEST-949-BLOCKING-EVALUATION";
+
+		rule_949060	[label="949060\nAdd paranoia level 1 anomaly score to total anomaly score\nPhase 2", fillcolor="lightskyblue"];
+		rule_949061	[label="949061\nAdd paranoia level 2 anomaly score to total anomaly score\nPhase 2", fillcolor="lightskyblue"];
+		rule_949062	[label="949062\nAdd paranoia level 3 anomaly score to total anomaly score\nPhase 2", fillcolor="lightskyblue"];
+		rule_949063	[label="949063\nAdd paranoia level 4 anomaly score to total anomaly score\nPhase 2", fillcolor="lightskyblue"];
+		rule_949100	[label="949100\nIP reputation block enforcement\nPhase 2", fillcolor="lightskyblue"];
+		rule_949110	[label="949110\nInbound anomaly score exceeded: deny request\nPhase 2", fillcolor="lightskyblue"];
+		/* -- Ordering -- */
+		rule_949060 -> rule_949061 -> rule_949062 -> rule_949063 -> rule_949100 -> rule_949110 [style=invis];
+	}
+
+
+	subgraph cluster_RESPONSE_950_DATA_LEAKAGES {
+		label="RESPONSE-950-DATA-LEAKAGES";
+
+		rule_950130	[label="950130\nDirectory listing\nPhase 4", fillcolor="yellow"];
+		rule_950140	[label="950140\nCGI source code leakage\nPhase 4", fillcolor="yellow"];
+		/* -- Ordering -- */
+		rule_950130 -> rule_950140 [style=invis];
+
+		rule_950100	[label="950100\n5xx server error status code returned by the application\nPhase 4", fillcolor="yellow"];
+	}
+
+
+	subgraph cluster_RESPONSE_951_DATA_LEAKAGES_SQL {
+		label="RESPONSE-951-DATA-LEAKAGES-SQL";
+
+		rule_951100	[label="951100\nNon-blocking helper function\nPhase 4", fillcolor="yellow"];
+		rule_951110	[label="951110\nMicrosoft Access SQL information leakage\nPhase 4", fillcolor="yellow"];
+		rule_951120	[label="951120\nOracle SQL information leakage\nPhase 4", fillcolor="yellow"];
+		rule_951130	[label="951130\nDB2 SQL information leakage\nPhase 4", fillcolor="yellow"];
+		rule_951140	[label="951140\nEMC SQL information leakage\nPhase 4", fillcolor="yellow"];
+		rule_951150	[label="951150\nFirebird SQL information leakage\nPhase 4", fillcolor="yellow"];
+		rule_951160	[label="951160\nFrontbase SQL information leakage\nPhase 4", fillcolor="yellow"];
+		rule_951170	[label="951170\nHSQLDB SQL information leakage\nPhase 4", fillcolor="yellow"];
+		rule_951180	[label="951180\nIBM Informix SQL information leakage\nPhase 4", fillcolor="yellow"];
+		rule_951190	[label="951190\nIngres SQL information leakage\nPhase 4", fillcolor="yellow"];
+		rule_951200	[label="951200\nInterBase SQL information leakage\nPhase 4", fillcolor="yellow"];
+		rule_951210	[label="951210\nMaxDB SQL information leakage\nPhase 4", fillcolor="yellow"];
+		rule_951220	[label="951220\nMSSQL information leakage\nPhase 4", fillcolor="yellow"];
+		rule_951230	[label="951230\nMySQL information leakage\nPhase 4", fillcolor="yellow"];
+		rule_951240	[label="951240\nPostgreSQL information leakage\nPhase 4", fillcolor="yellow"];
+		rule_951250	[label="951250\nSQLite SQL information leakage\nPhase 4", fillcolor="yellow"];
+		rule_951260	[label="951260\nSybase SQL information leakage\nPhase 4", fillcolor="yellow"];
+		/* -- Ordering -- */
+		rule_951100 -> rule_951110 -> rule_951120 -> rule_951130 -> rule_951140 -> rule_951150 -> rule_951160 -> rule_951170 -> rule_951180 -> rule_951190 -> rule_951200 -> rule_951210 -> rule_951220 -> rule_951230 -> rule_951240 -> rule_951250 -> rule_951260 [style=invis];
+	}
+
+
+	subgraph cluster_RESPONSE_952_DATA_LEAKAGES_JAVA {
+		label="RESPONSE-952-DATA-LEAKAGES-JAVA";
+
+		rule_952100	[label="952100\nJava source code leakage\nPhase 4", fillcolor="yellow"];
+		rule_952110	[label="952110\nJava errors\nPhase 4", fillcolor="yellow"];
+		/* -- Ordering -- */
+		rule_952100 -> rule_952110 [style=invis];
+	}
+
+
+	subgraph cluster_RESPONSE_953_DATA_LEAKAGES_PHP {
+		label="RESPONSE-953-DATA-LEAKAGES-PHP";
+
+		rule_953100	[label="953100\nPHP information leakage\nPhase 4", fillcolor="yellow"];
+		rule_953110	[label="953110\nPHP source code leakage\nPhase 4", fillcolor="yellow"];
+		rule_953120	[label="953120\nPHP source code leakage (PHP open tag found)\nPhase 4", fillcolor="yellow"];
+		/* -- Ordering -- */
+		rule_953100 -> rule_953110 -> rule_953120 [style=invis];
+	}
+
+
+	subgraph cluster_RESPONSE_954_DATA_LEAKAGES_IIS {
+		label="RESPONSE-954-DATA-LEAKAGES-IIS";
+
+		rule_954100	[label="954100\nDisclosure of IIS install location\nPhase 4", fillcolor="yellow"];
+		rule_954110	[label="954110\nApplication availability error\nPhase 4", fillcolor="yellow"];
+		rule_954120	[label="954120\nIIS information leakage\nPhase 4", fillcolor="yellow"];
+		rule_954130	[label="954130\nIIS information leakage\nPhase 4", fillcolor="yellow"];
+		/* -- Ordering -- */
+		rule_954100 -> rule_954110 -> rule_954120 -> rule_954130 [style=invis];
+	}
+
+
+	subgraph cluster_RESPONSE_959_BLOCKING_EVALUATION {
+		label="RESPONSE-959-BLOCKING-EVALUATION";
+
+		rule_959060	[label="959060\nAdd paranoia level 1 outbound score to total outbound score\nPhase 4", fillcolor="yellow"];
+		rule_959061	[label="959061\nAdd paranoia level 2 outbound score to total outbound score\nPhase 4", fillcolor="yellow"];
+		rule_959062	[label="959062\nAdd paranoia level 3 outbound score to total outbound score\nPhase 4", fillcolor="yellow"];
+		rule_959063	[label="959063\nAdd paranoia level 4 outbound score to total outbound score\nPhase 4", fillcolor="yellow"];
+		rule_959100	[label="959100\nOutbound anomaly score exceeded: deny request\nPhase 4", fillcolor="yellow"];
+		/* -- Ordering -- */
+		rule_959060 -> rule_959061 -> rule_959062 -> rule_959063 -> rule_959100 [style=invis];
+	}
+
+
+	subgraph cluster_RESPONSE_980_CORRELATION {
+		label="RESPONSE-980-CORRELATION";
+
+		rule_980100	[label="980100\nCorrelated successful attack identified\nPhase 5", fillcolor="mediumseagreen"];
+		rule_980110	[label="980110\nCorrelated attack attempt identified\nPhase 5", fillcolor="mediumseagreen"];
+		rule_980115	[label="980115\nCalculate total sum of all triggered inbound rules\nPhase 5", fillcolor="mediumseagreen"];
+		rule_980120	[label="980120\nScore report for request if below inbound threshold\nPhase 5", fillcolor="mediumseagreen"];
+		rule_980130	[label="980130\nScore report for request if met/exceeded inbound threshold\nPhase 5", fillcolor="mediumseagreen"];
+		rule_980140	[label="980140\nScore report for request if met/exceeded outbound threshold\nPhase 5", fillcolor="mediumseagreen"];
+		rule_980145	[label="980145\nCalculate total sum of all triggered outbound rules\nPhase 5", fillcolor="mediumseagreen"];
+		rule_980150	[label="980150\nScore report for request if below outbound threshold\nPhase 5", fillcolor="mediumseagreen"];
+		/* -- Ordering -- */
+		rule_980100 -> rule_980110 -> rule_980115 -> rule_980120 -> rule_980130 -> rule_980140 -> rule_980145 -> rule_980150 [style=invis];
+	}
+
+
+	/* Define the different ranks: align nodes by paranoia level */
+	{
+		graph [rank=same];
+		paranoia_0;
+
+		rule_912100;
+		rule_912110;
+	}
+	{
+		graph [rank=same];
+		paranoia_1;
+
+		rule_910000;
+		rule_910100;
+		rule_910120;
+		rule_910130;
+		rule_910140;
+		rule_910150;
+		rule_910160;
+		rule_910170;
+		rule_910180;
+		rule_910190;
+
+		rule_911100;
+
+		rule_912120;
+		rule_912130;
+		rule_912140;
+		rule_912150;
+		rule_912160;
+		rule_912161;
+		rule_912170;
+
+		rule_913100;
+		rule_913110;
+		rule_913120;
+
+		rule_920100;
+		rule_920120;
+		rule_920160;
+		rule_920170;
+		rule_920171;
+		rule_920180;
+		rule_920181;
+		rule_920190;
+		rule_920210;
+		rule_920220;
+		rule_920240;
+		rule_920250;
+		rule_920260;
+		rule_920270;
+		rule_920280;
+		rule_920290;
+		rule_920310;
+		rule_920311;
+		rule_920330;
+		rule_920340;
+		rule_920350;
+		rule_920380;
+		rule_920360;
+		rule_920370;
+		rule_920390;
+		rule_920400;
+		rule_920410;
+		rule_920470;
+		rule_920420;
+		rule_920480;
+		rule_920430;
+		rule_920440;
+		rule_920500;
+		rule_920450;
+
+		rule_921110;
+		rule_921120;
+		rule_921130;
+		rule_921140;
+		rule_921150;
+		rule_921160;
+		rule_921190;
+		rule_921200;
+
+		rule_930100;
+		rule_930110;
+		rule_930120;
+		rule_930130;
+
+		rule_931100;
+		rule_931110;
+		rule_931120;
+
+		rule_932100;
+		rule_932105;
+		rule_932110;
+		rule_932115;
+		rule_932120;
+		rule_932130;
+		rule_932140;
+		rule_932150;
+		rule_932160;
+		rule_932170;
+		rule_932171;
+		rule_932180;
+
+		rule_933100;
+		rule_933110;
+		rule_933120;
+		rule_933130;
+		rule_933140;
+		rule_933200;
+		rule_933150;
+		rule_933160;
+		rule_933170;
+		rule_933180;
+		rule_933210;
+
+		rule_934100;
+
+		rule_941100;
+		rule_941110;
+		rule_941120;
+		rule_941130;
+		rule_941140;
+		rule_941160;
+		rule_941170;
+		rule_941180;
+		rule_941190;
+		rule_941200;
+		rule_941210;
+		rule_941220;
+		rule_941230;
+		rule_941240;
+		rule_941250;
+		rule_941260;
+		rule_941270;
+		rule_941280;
+		rule_941290;
+		rule_941300;
+		rule_941310;
+		rule_941350;
+		rule_941360;
+		rule_941370;
+
+		rule_942100;
+		rule_942140;
+		rule_942160;
+		rule_942170;
+		rule_942190;
+		rule_942220;
+		rule_942230;
+		rule_942240;
+		rule_942250;
+		rule_942270;
+		rule_942280;
+		rule_942290;
+		rule_942320;
+		rule_942350;
+		rule_942360;
+		rule_942500;
+
+		rule_943100;
+		rule_943110;
+		rule_943120;
+
+		rule_944100;
+		rule_944110;
+		rule_944120;
+		rule_944130;
+
+		rule_949060;
+		rule_949061;
+		rule_949062;
+		rule_949063;
+		rule_949100;
+		rule_949110;
+
+		rule_950130;
+		rule_950140;
+
+		rule_951100;
+		rule_951110;
+		rule_951120;
+		rule_951130;
+		rule_951140;
+		rule_951150;
+		rule_951160;
+		rule_951170;
+		rule_951180;
+		rule_951190;
+		rule_951200;
+		rule_951210;
+		rule_951220;
+		rule_951230;
+		rule_951240;
+		rule_951250;
+		rule_951260;
+
+		rule_952100;
+		rule_952110;
+
+		rule_953100;
+		rule_953110;
+		rule_953120;
+
+		rule_954100;
+		rule_954110;
+		rule_954120;
+		rule_954130;
+
+		rule_959060;
+		rule_959061;
+		rule_959062;
+		rule_959063;
+		rule_959100;
+
+		rule_980100;
+		rule_980110;
+		rule_980115;
+		rule_980120;
+		rule_980130;
+		rule_980140;
+		rule_980145;
+		rule_980150;
+	}
+	{
+		graph [rank=same];
+		paranoia_2;
+
+		rule_912171;
+
+		rule_913101;
+		rule_913102;
+
+		rule_920271;
+		rule_920200;
+		rule_920201;
+		rule_920230;
+		rule_920300;
+		rule_920320;
+		rule_920121;
+		rule_920341;
+
+		rule_921151;
+
+		rule_931130;
+
+		rule_932200;
+
+		rule_933151;
+
+		rule_941101;
+		rule_941150;
+		rule_941320;
+		rule_941330;
+		rule_941340;
+		rule_941380;
+
+		rule_942110;
+		rule_942120;
+		rule_942130;
+		rule_942150;
+		rule_942180;
+		rule_942200;
+		rule_942210;
+		rule_942260;
+		rule_942300;
+		rule_942310;
+		rule_942330;
+		rule_942340;
+		rule_942361;
+		rule_942370;
+		rule_942380;
+		rule_942390;
+		rule_942400;
+		rule_942410;
+		rule_942470;
+		rule_942480;
+		rule_942430;
+		rule_942440;
+		rule_942450;
+		rule_942510;
+
+		rule_944200;
+		rule_944210;
+		rule_944240;
+		rule_944250;
+
+		rule_950100;
+	}
+	{
+		graph [rank=same];
+		paranoia_3;
+
+		rule_920272;
+		rule_920490;
+		rule_920510;
+
+		rule_921170;
+		rule_921180;
+
+		rule_932106;
+		rule_932190;
+
+		rule_933131;
+		rule_933161;
+		rule_933111;
+		rule_933190;
+
+		rule_942251;
+		rule_942490;
+		rule_942420;
+		rule_942431;
+		rule_942460;
+		rule_942101;
+		rule_942511;
+
+		rule_944300;
+	}
+	{
+		graph [rank=same];
+		paranoia_4;
+
+		rule_920202;
+		rule_920273;
+		rule_920274;
+		rule_920275;
+		rule_920460;
+
+		rule_942421;
+		rule_942432;
+	}
+}
